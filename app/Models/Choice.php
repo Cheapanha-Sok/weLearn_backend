@@ -6,19 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Category extends Model
+class Choice extends Model
 {
-     /** The table associated with the model.
+    /** The table associated with the model.
      *
      * @var string
      */
-    protected $table = 'categories';
-    public function pdfs(): HasMany
-    {
-        return $this->hasMany(Pdf::class);
-    }
-    public function questions(): HasMany
-    {
+    protected $table = 'choices';
+    public function question():HasMany{
         return $this->hasMany(Question::class);
     }
 }

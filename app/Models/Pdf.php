@@ -12,7 +12,7 @@ class Pdf extends Model
      * @var string
      */
     protected $table = 'pdfs';
-    public function categorie(): BelongsTo
+    public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class, 'category_id');
     }
