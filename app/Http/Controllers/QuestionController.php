@@ -2,33 +2,72 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
+use App\Models\Level;
 use App\Models\Question;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class QuestionController extends Controller
 {
+
     public function index()
     {
-        return response()->json(Question::all());
+        $questions = Question::with('choices', 'category', 'level')
+            ->select('id', 'name', 'category_id', 'level_id')
+
+            ->get();
+
+        return response()->json($questions);
     }
-    public function show($id)
+    public function show($categoryId, $levelId)
     {
-        $category = Question::find($id);
-        if (!$category) {
-            return response()->json(['message' => "categories with id $id not found"], 404);
-        }
-        return response()->json($category);
+        $questions = Question::with('choices')
+            ->select('id', 'name')
+            ->where("questions.category_id", $categoryId)
+            ->where('questions.level_id', $levelId)
+            ->get();
+        return response()->json($questions);
     }
     public function store(Request $request)
     {
         $request->validate([
-            'name' => ['required', 'string', 'lowercase'],
+            'name' => ['required', 'string'],
+            'category_id' => ['required', 'int'],
+            'level_id' => ['required', 'int'],
+            'choices' => ['required', 'array'],
+            'choices.*.name' => ['required', 'string'],
         ]);
-        $category = new Question();
-        $category->name = $request->input('name');
-        $category->save();
-        return response()->json(['message' => 'category created successfully'], 201);
+
+        $choice = Category::find($request->input('category_id'));
+        $level = Level::find($request->input("level_id"));
+
+        if ($choice && $level) {
+            $question = Question::create([
+                'name' => $request->input('name'),
+                'category_id' => $choice->id,
+                'level_id' => $level->id,
+            ]);
+
+            $choicesData = $request->input('choices');
+            $choiceController = new ChoiceController(); // Instantiate ChoiceController
+
+            foreach ($choicesData as $choiceData) {
+                $choiceName = $choiceData['name'];
+
+                $choiceController->store(new Request([
+                    'name' => $choiceName,
+                    'question_id' => $question->id,
+                ]));
+            }
+
+            return response()->json(['message' => 'Question created successfully'], 201);
+        }
+
+        return response()->json(['message' => "Category or Level not found!"], 404);
     }
+
+
     public function edit(Request $request, $id)
     {
         $category = Question::find($id);
@@ -44,9 +83,9 @@ class QuestionController extends Controller
     }
     public function destroy($id)
     {
-        $category = Question::find($id);
-        if ($category != null) {
-            $category->delete();
+        $question = Question::find($id);
+        if ($question != null) {
+            $question->delete();
             return response()->json(['message' => 'category delete successfully'], 204);
         }
         return response()->json(['message' => "categories with id $id not found"], 404);

@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ExamDateController;
+use App\Http\Controllers\LevelController;
 use App\Http\Controllers\PdfController;
+use App\Http\Controllers\QuestionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -26,4 +28,7 @@ Route::get('/flights', function () {
 Route::apiResource('category', CategoryController::class);
 Route::apiResource('examDate', ExamDateController::class);
 Route::apiResource('pdf', PdfController::class);
+Route::apiResource('level' , LevelController::class);
+Route::apiResource('question' , QuestionController::class);
+Route::get('question/{category_id}/{level_id}' , [QuestionController::class,'show']);
 Route::get('pdf/{examdate_id}/{category_id}/{type}' , [PdfController::class,'show']);

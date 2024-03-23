@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Question extends Model
 {
@@ -13,16 +14,17 @@ class Question extends Model
      * @var string
      */
     protected $table = 'questions';
-    public function choices(): BelongsTo
+    protected $fillable = ['name', 'category_id', 'level_id'];
+    public function choices(): HasMany
     {
-        return $this->belongsTo(Choice::class, 'choice_id');
+        return $this->hasMany(Choice::class);
     }
     public function category(): BelongsTo
     {
-        return $this->belongsTo(Category::class, 'category_id');
+        return $this->belongsTo(Category::class);
     }
     public function level():BelongsTo{
-        return $this->belongsTo(Level::class , "level_id");
+        return $this->belongsTo(Level::class);
     }
 
 }

@@ -11,29 +11,22 @@ use Illuminate\Support\Facades\DB;
 
 class PdfController extends Controller
 {
-    public function show(string $examdate, string $category, string $type)
-{
-    $examDate = ExamDate::where('name', $examdate)->first();
-    $category = Category::where('name', $category)->first();
+    public function show(int $examDateId ,int $categoryId, string $type)
+    {
+        $pdf = DB::table('pdfs')
+            ->join('categories', 'pdfs.category_id', '=', 'categories.id')
+            ->join('exam_dates', 'pdfs.exam_date_id', '=', 'exam_dates.id')
+            ->select('pdfs.id', 'pdfs.pdfUrl', 'pdfs.type', 'categories.name as categoryName', 'exam_dates.name as examDate')
+            ->where('pdfs.exam_date_id', $examDateId)
+            ->where('pdfs.category_id', $categoryId)
+            ->where('pdfs.type', $type)
+            ->first();
 
-    if (!$examDate || !$category) {
-        return response(['message' => 'Exam date or category not found'], 404);
+        if (!$pdf) {
+            return response(['message' => 'PDF not found'], 404);
+        }
+        return response()->json($pdf);
     }
-
-    $pdf = DB::table('pdfs')
-        ->join('categories', 'pdfs.category_id', '=', 'categories.id')
-        ->join('exam_dates', 'pdfs.exam_date_id', '=', 'exam_dates.id')
-        ->select('pdfs.id', 'pdfs.pdfUrl', 'pdfs.type', 'categories.name as categoryName', 'exam_dates.name as examDate')
-        ->where('pdfs.exam_date_id', $examDate->id)
-        ->where('pdfs.category_id', $category->id)
-        ->where('pdfs.type', $type)
-        ->first();
-
-    if (!$pdf) {
-        return response(['message' => 'PDF not found'], 404);
-    }
-    return response()->json($pdf);
-}
 
     public function showToDelete(int $id)
     {
@@ -96,8 +89,8 @@ class PdfController extends Controller
     {
         $pdfResponse = $this->showToDelete($id);
 
-        if ($pdfResponse->status() === 404) {
-            return $pdfResponse; 
+        if ($pdfResponse) {
+            return $pdfResponse;
         }
         $pdfData = $pdfResponse->original;
         $result = Cloudinary::destroy("$pdfData->type/$pdfData->examDate/$pdfData->categoryName");
